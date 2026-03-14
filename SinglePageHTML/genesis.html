@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
 <title>GENESIS — Neuroevolution Ecosystem Simulator</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -25,17 +26,17 @@ main{flex:1;display:flex;gap:0.75rem;padding:0.75rem;overflow:hidden;min-height:
 .brain-section{display:flex;flex-direction:column}
 #brainCanvas{width:100%;height:220px;background:#080818;border:1px solid rgba(68,136,255,0.25);border-radius:4px;margin-bottom:0.5rem}
 .brain-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;font-size:0.78rem;font-family:'Courier New',monospace}
-.brain-stats .si{display:flex;justify-content:space-between;padding:0.25rem 0.4rem;background:rgba(0,255,136,0.04);border-radius:3px;border-left:2px solid rgba(0,255,136,0.3)}
-.brain-stats .sl{color:#5588cc}.brain-stats .sv{color:#00ff88;font-weight:600}
+.brain-stats .brain-stat-item{display:flex;justify-content:space-between;padding:0.25rem 0.4rem;background:rgba(0,255,136,0.04);border-radius:3px;border-left:2px solid rgba(0,255,136,0.3)}
+.brain-stats .brain-stat-label{color:#5588cc}.brain-stats .brain-stat-value{color:#00ff88;font-weight:600}
 
 /* === STATS PANEL === */
 .stats-section{flex:1;min-height:0}
 #stats{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-family:'Courier New',monospace;font-size:0.8rem}
-.sg{background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-radius:4px;padding:0.5rem}
-.sg-t{color:#4488ff;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem;opacity:0.7}
-.sr{display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.75rem}
-.sr .l{color:#6677aa}.sr .v{color:#00ff88;font-weight:600}
-.sr.warn .v{color:#ffaa44}.sr.danger .v{color:#ff4466}
+.stat-group{background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-radius:4px;padding:0.5rem}
+.stat-group-title{color:#4488ff;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem;opacity:0.7}
+.stat-row{display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.75rem}
+.stat-row .stat-label{color:#6677aa}.stat-row .stat-value{color:#00ff88;font-weight:600}
+.stat-row.warn .stat-value{color:#ffaa44}.stat-row.danger .stat-value{color:#ff4466}
 
 /* === GRAPH PANEL === */
 #graphCanvas{width:100%;height:140px;background:#080818;border:1px solid rgba(255,68,102,0.2);border-radius:4px}
@@ -46,9 +47,9 @@ footer{padding:0.6rem 1.5rem;background:rgba(15,15,46,0.85);backdrop-filter:blur
 .controls button{padding:0.4rem 0.9rem;background:transparent;border:1.5px solid #4488ff;color:#4488ff;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:600;letter-spacing:1px;transition:all 0.2s}
 .controls button:hover{border-color:#00ff88;color:#00ff88;box-shadow:0 0 12px rgba(0,255,136,0.3)}
 .controls button.active{background:rgba(0,255,136,0.15);border-color:#00ff88;color:#00ff88}
-.cg{display:flex;align-items:center;gap:0.5rem}
-.cg label{font-size:0.75rem;color:#6677aa;font-weight:600;letter-spacing:1px}
-.cg .cv{min-width:32px;text-align:right;font-family:'Courier New',monospace;color:#00ff88;font-weight:600;font-size:0.8rem}
+.control-group{display:flex;align-items:center;gap:0.5rem}
+.control-group label{font-size:0.75rem;color:#6677aa;font-weight:600;letter-spacing:1px}
+.control-group .control-value{min-width:32px;text-align:right;font-family:'Courier New',monospace;color:#00ff88;font-weight:600;font-size:0.8rem}
 input[type=range]{width:100px;height:4px;border-radius:2px;background:linear-gradient(to right,#4488ff,#00ff88);outline:none;-webkit-appearance:none;appearance:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#00ff88;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,0.5)}
 input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#00ff88;cursor:pointer;border:none;box-shadow:0 0 8px rgba(0,255,136,0.5)}
@@ -74,21 +75,21 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
       <h3>Neural Network</h3>
       <canvas id="brainCanvas"></canvas>
       <div class="brain-stats" id="brainStats">
-        <div class="si"><span class="sl">Species</span><span class="sv" id="bs-species">—</span></div>
-        <div class="si"><span class="sl">Gen</span><span class="sv" id="bs-gen">—</span></div>
-        <div class="si"><span class="sl">Energy</span><span class="sv" id="bs-energy">—</span></div>
-        <div class="si"><span class="sl">Fitness</span><span class="sv" id="bs-fitness">—</span></div>
-        <div class="si"><span class="sl">Age</span><span class="sv" id="bs-age">—</span></div>
-        <div class="si"><span class="sl">Eaten</span><span class="sv" id="bs-eaten">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Species</span><span class="brain-stat-value" id="bs-species">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Gen</span><span class="brain-stat-value" id="bs-gen">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Energy</span><span class="brain-stat-value" id="bs-energy">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Fitness</span><span class="brain-stat-value" id="bs-fitness">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Age</span><span class="brain-stat-value" id="bs-age">—</span></div>
+        <div class="brain-stat-item"><span class="brain-stat-label">Eaten</span><span class="brain-stat-value" id="bs-eaten">—</span></div>
       </div>
     </div>
     <div class="panel stats-section">
       <h3>Statistics</h3>
       <div id="stats">
-        <div class="sg"><div class="sg-t">Herbivores</div><div class="sr"><span class="l">Alive</span><span class="v" id="st-herb">0</span></div><div class="sr"><span class="l">Avg Energy</span><span class="v" id="st-herb-e">0</span></div></div>
-        <div class="sg"><div class="sg-t">Carnivores</div><div class="sr danger"><span class="l">Alive</span><span class="v" id="st-carn">0</span></div><div class="sr danger"><span class="l">Avg Energy</span><span class="v" id="st-carn-e">0</span></div></div>
-        <div class="sg"><div class="sg-t">Ecosystem</div><div class="sr"><span class="l">Food</span><span class="v" id="st-food">0</span></div><div class="sr"><span class="l">Best Fit</span><span class="v" id="st-best">0</span></div></div>
-        <div class="sg"><div class="sg-t">Evolution</div><div class="sr"><span class="l">Generation</span><span class="v" id="st-gen">0</span></div><div class="sr"><span class="l">Time</span><span class="v" id="st-time">0s</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Herbivores</div><div class="stat-row"><span class="stat-label">Alive</span><span class="stat-value" id="st-herb">0</span></div><div class="stat-row"><span class="stat-label">Avg Energy</span><span class="stat-value" id="st-herb-e">0</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Carnivores</div><div class="stat-row danger"><span class="stat-label">Alive</span><span class="stat-value" id="st-carn">0</span></div><div class="stat-row danger"><span class="stat-label">Avg Energy</span><span class="stat-value" id="st-carn-e">0</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Ecosystem</div><div class="stat-row"><span class="stat-label">Food</span><span class="stat-value" id="st-food">0</span></div><div class="stat-row"><span class="stat-label">Best Fit</span><span class="stat-value" id="st-best">0</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Evolution</div><div class="stat-row"><span class="stat-label">Generation</span><span class="stat-value" id="st-gen">0</span></div><div class="stat-row"><span class="stat-label">Time</span><span class="stat-value" id="st-time">0s</span></div></div>
       </div>
     </div>
     <div class="panel"><h3>Population Dynamics</h3><canvas id="graphCanvas"></canvas></div>
@@ -97,8 +98,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 <footer>
   <div class="controls">
     <button id="btnPlay" class="active">⏸ PAUSE</button>
-    <div class="cg"><label>Speed</label><input type="range" id="slSpeed" min="1" max="10" value="1"><span class="cv" id="vSpeed">1×</span></div>
-    <div class="cg"><label>Mutation</label><input type="range" id="slMut" min="1" max="30" value="8"><span class="cv" id="vMut">8%</span></div>
+    <div class="control-group"><label>Speed</label><input type="range" id="slSpeed" min="1" max="10" value="1"><span class="control-value" id="vSpeed">1×</span></div>
+    <div class="control-group"><label>Mutation</label><input type="range" id="slMut" min="1" max="30" value="8"><span class="control-value" id="vMut">8%</span></div>
     <button id="btnTrails" class="active">☁ Trails</button>
     <div class="spacer"></div>
     <button id="btnReset">↻ Reset</button>
@@ -128,14 +129,17 @@ const CFG = {
 // ════════════════════════════════════════════════════════════════════════════
 // UTILITIES
 // ════════════════════════════════════════════════════════════════════════════
+const TAU = Math.PI * 2;
+const $ = id => document.getElementById(id);
+
 function gaussRand() {
   const u = Math.random(), v = Math.random();
-  return Math.sqrt(-2 * Math.log(u || 1e-10)) * Math.cos(6.283185307 * v);
+  return Math.sqrt(-2 * Math.log(u || 1e-10)) * Math.cos(TAU * v);
 }
 function sigmoid(x) { return x > 15 ? 1 : x < -15 ? 0 : 1 / (1 + Math.exp(-x)); }
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 function dist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
-function normAngle(a) { a %= 6.283185307; if (a > Math.PI) a -= 6.283185307; if (a < -Math.PI) a += 6.283185307; return a; }
+function normAngle(a) { a %= TAU; if (a > Math.PI) a -= TAU; if (a < -Math.PI) a += TAU; return a; }
 function hsl(h, s, l, a) { return a !== undefined ? `hsla(${h},${s}%,${l}%,${a})` : `hsl(${h},${s}%,${l}%)`; }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -232,8 +236,8 @@ class Particle {
 // FOOD
 // ════════════════════════════════════════════════════════════════════════════
 class Food {
-  constructor(x, y) { this.x = x; this.y = y; this.eaten = false; this.phase = Math.random() * 6.28; }
-  update(dt) { this.phase = (this.phase + dt * 2.5) % 6.28; }
+  constructor(x, y) { this.x = x; this.y = y; this.eaten = false; this.phase = Math.random() * TAU; }
+  update(dt) { this.phase = (this.phase + dt * 2.5) % TAU; }
   get pulse() { return 1 + Math.sin(this.phase) * 0.25; }
 }
 
@@ -249,7 +253,7 @@ class Creature {
     this.species = species;
     this.brain = brain || new NN(CFG.TOPOLOGY);
     this.gen = gen || 0;
-    this.heading = Math.random() * 6.28;
+    this.heading = Math.random() * TAU;
     this.speed = 0;
     this.herb = species === 'herb';
     this.maxE = this.herb ? CFG.HERB_MAX_E : CFG.CARN_MAX_E;
@@ -405,7 +409,7 @@ class Creature {
       childBrain.setGenome(mg);
     }
 
-    const a = Math.random() * 6.28;
+    const a = Math.random() * TAU;
     const child = new Creature(
       this.x + Math.cos(a) * 20, this.y + Math.sin(a) * 20,
       this.species, childBrain, Math.max(this.gen, mate ? mate.gen : 0) + 1
@@ -441,7 +445,7 @@ class Simulation {
 
   burst(x, y, color, n, spd) {
     for (let i = 0; i < n; i++) {
-      const a = Math.random() * 6.28;
+      const a = Math.random() * TAU;
       const s = spd * (0.5 + Math.random() * 0.5);
       this.particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s, color, 0.4 + Math.random() * 0.3));
     }
@@ -522,6 +526,8 @@ class Simulation {
     if (this.creatures.length > CFG.MAX_POP) {
       this.creatures.sort((a, b) => b.fitness - a.fitness);
       this.creatures.length = CFG.MAX_POP;
+      herbs = 0; carns = 0;
+      for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
     }
     while (herbs < CFG.MIN_HERBS) {
       this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'herb'));
@@ -577,7 +583,10 @@ class Renderer {
 
   resize() {
     const r = this.cv.parentElement.getBoundingClientRect();
-    this.cv.width = r.width; this.cv.height = r.height;
+    const dpr = window.devicePixelRatio || 1;
+    this.cv.width = r.width * dpr; this.cv.height = r.height * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = r.width; this.h = r.height;
     this.sx = r.width / CFG.W; this.sy = r.height / CFG.H;
   }
 
@@ -586,7 +595,7 @@ class Renderer {
   ws(s) { return s * Math.min(this.sx, this.sy); }
 
   render(sel, showTrails) {
-    const ctx = this.ctx, w = this.cv.width, h = this.cv.height;
+    const ctx = this.ctx, w = this.w, h = this.h;
     ctx.fillStyle = '#08081a'; ctx.fillRect(0, 0, w, h);
 
     // Grid
@@ -602,9 +611,9 @@ class Renderer {
       const fx = this.wx(f.x), fy = this.wy(f.y), r = this.ws(3.5 * f.pulse);
       ctx.shadowColor = '#00ff88'; ctx.shadowBlur = this.ws(12);
       ctx.fillStyle = 'rgba(0,255,136,0.2)';
-      ctx.beginPath(); ctx.arc(fx, fy, r * 1.8, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(fx, fy, r * 1.8, 0, TAU); ctx.fill();
       ctx.fillStyle = '#00ff88';
-      ctx.beginPath(); ctx.arc(fx, fy, r, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(fx, fy, r, 0, TAU); ctx.fill();
     }
     ctx.restore();
 
@@ -627,7 +636,7 @@ class Renderer {
 
       // Glow
       ctx.fillStyle = hsl(c.hue, 90, 50, 0.15);
-      ctx.beginPath(); ctx.arc(cx, cy, s * 2.2, 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, s * 2.2, 0, TAU); ctx.fill();
 
       // Body triangle
       ctx.save(); ctx.translate(cx, cy); ctx.rotate(c.heading);
@@ -654,7 +663,7 @@ class Renderer {
         const pulse = Math.sin(Date.now() * 0.008) * 2 + 4;
         ctx.strokeStyle = hsl(c.hue, 100, 65, 0.7);
         ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(cx, cy, s + this.ws(pulse), 0, 6.28); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, s + this.ws(pulse), 0, TAU); ctx.stroke();
       }
     }
 
@@ -662,7 +671,7 @@ class Renderer {
     for (const p of this.sim.particles) {
       ctx.globalAlpha = p.alpha;
       ctx.fillStyle = p.color;
-      ctx.beginPath(); ctx.arc(this.wx(p.x), this.wy(p.y), this.ws(p.sz * p.alpha), 0, 6.28); ctx.fill();
+      ctx.beginPath(); ctx.arc(this.wx(p.x), this.wy(p.y), this.ws(p.sz * p.alpha), 0, TAU); ctx.fill();
     }
     ctx.globalAlpha = 1;
   }
@@ -677,11 +686,19 @@ const OUTPUT_LABELS = ['Turn', 'Speed', 'Action'];
 class BrainViz {
   constructor(canvas) {
     this.cv = canvas; this.ctx = canvas.getContext('2d');
-    this.cv.width = 370; this.cv.height = 220;
+    this.resize();
+  }
+
+  resize() {
+    const r = this.cv.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.cv.width = r.width * dpr; this.cv.height = r.height * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = r.width; this.h = r.height;
   }
 
   render(creature) {
-    const ctx = this.ctx, W = this.cv.width, H = this.cv.height;
+    const ctx = this.ctx, W = this.w, H = this.h;
     ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
 
     if (!creature || !creature.acts) {
@@ -741,12 +758,12 @@ class BrainViz {
 
         // Glow
         ctx.fillStyle = `rgba(0,255,140,${br * 0.25})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.8, 0, 6.28); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.8, 0, TAU); ctx.fill();
 
         // Node
         const lightness = 20 + br * 55;
         ctx.fillStyle = hsl(l === nLayers - 1 ? 30 : 150, 90, lightness);
-        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.28); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.fill();
 
         // Border
         ctx.strokeStyle = `rgba(255,255,255,${0.15 + br * 0.3})`;
@@ -770,7 +787,6 @@ class BrainViz {
     }
 
     // Update stat display
-    const $ = id => document.getElementById(id);
     $('bs-species').textContent = creature.herb ? 'Herbivore' : 'Carnivore';
     $('bs-species').style.color = creature.herb ? '#00ff88' : '#ff4466';
     $('bs-gen').textContent = 'G' + creature.gen;
@@ -787,11 +803,19 @@ class BrainViz {
 class Graph {
   constructor(canvas) {
     this.cv = canvas; this.ctx = canvas.getContext('2d');
-    this.cv.width = 370; this.cv.height = 140;
+    this.resize();
+  }
+
+  resize() {
+    const r = this.cv.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.cv.width = r.width * dpr; this.cv.height = r.height * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.w = r.width; this.h = r.height;
   }
 
   render(history) {
-    const ctx = this.ctx, W = this.cv.width, H = this.cv.height;
+    const ctx = this.ctx, W = this.w, H = this.h;
     ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
     if (!history || history.length < 2) {
       ctx.fillStyle = '#445566'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
@@ -854,9 +878,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderer = new Renderer(document.getElementById('simCanvas'), sim);
   const brainViz = new BrainViz(document.getElementById('brainCanvas'));
   const graph = new Graph(document.getElementById('graphCanvas'));
+  window.addEventListener('resize', () => { brainViz.resize(); graph.resize(); });
 
   let selected = null, paused = false, speed = 1, trails = true;
-  const $ = id => document.getElementById(id);
 
   // Canvas click — select creature
   const simCv = $('simCanvas');
@@ -905,7 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function frame() {
     if (!paused) {
-      const steps = Math.min(speed, 15);
+      const steps = speed;
       for (let i = 0; i < steps; i++) sim.update(DT);
     }
 
