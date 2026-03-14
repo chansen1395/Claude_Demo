@@ -120,6 +120,7 @@ This also avoids the slight precision loss of the hardcoded literal vs `Math.PI 
 Classes like `.sg`, `.sr`, `.sl`, `.sv`, `.si`, `.cg`, `.cv` throughout the CSS and HTML are difficult to read and maintain. Even in a single-file context, names like `.stat-group`, `.stat-row`, `.stat-label`, `.stat-value`, `.control-group` would cost minimal bytes but vastly improve readability.
 
 > **Status: ✅ Implemented.** `genesis.html` now uses descriptive class names across CSS and markup:
+>
 > - Brain panel: `.brain-stat-item`, `.brain-stat-label`, `.brain-stat-value`
 > - Stats panel: `.stat-group`, `.stat-group-title`, `.stat-row`, `.stat-label`, `.stat-value`
 > - Controls: `.control-group`, `.control-value`
@@ -151,7 +152,7 @@ The `const $ = id => document.getElementById(id)` is defined once genesis.html a
 
 genesis.html — `reproduce()` modifies `mate.energy` and `mate.lastRepro` as a side effect. This creates order dependence: if both creatures in a pair attempt `reproduce()` in the same tick, the first modifies the second's state before the second decides. Consider handling reproduction at the simulation level to make this explicit.
 
-> **Assessment: ❌ Not worth changing.** The review correctly identifies the side effect, but the current behavior is actually desirable for the simulation. When creature A reproduces with mate B, it deducts energy from B and sets B's `lastRepro` — this prevents B from *also* reproducing that same tick (double-reproduction from one pairing). Moving reproduction to the simulation level would require the same mutual state mutation, just in a different location. The "order dependence" is a feature, not a bug: whichever creature iterates first "initiates" the mating. The current design is simple and produces correct biological-ish behavior.
+> **Assessment: ❌ Not worth changing.** The review correctly identifies the side effect, but the current behavior is actually desirable for the simulation. When creature A reproduces with mate B, it deducts energy from B and sets B's `lastRepro` — this prevents B from _also_ reproducing that same tick (double-reproduction from one pairing). Moving reproduction to the simulation level would require the same mutual state mutation, just in a different location. The "order dependence" is a feature, not a bug: whichever creature iterates first "initiates" the mating. The current design is simple and produces correct biological-ish behavior.
 
 ---
 
@@ -176,6 +177,7 @@ genesis.html — `reproduce()` modifies `mate.energy` and `mate.lastRepro` as a 
 | No `<meta name="description">`        | Head         | SEO/social sharing metadata missing                    |
 
 > **Assessment per row:**
+>
 > - **Speed slider clamp:** ✅ Valid nit. The `Math.min(speed, 15)` is dead code since the slider max is 10. Remove the clamp or change slider max. Trivial.
 > - **`_cid` global:** ❌ Not worth doing. It's a module-scoped counter in a single-file app. Making it a static class property gains nothing.
 > - **Renders when paused:** ⚠️ Minor but valid. Could skip re-render when paused AND no selection change. Saves battery on laptops/phones. Worth a quick `if (paused && !dirty) return;` guard but not urgent.
@@ -208,23 +210,24 @@ The original review is competent and thorough. It correctly identifies the codeb
 
 ### Verdict by category:
 
-| # | Item | Verdict | Action |
-|---|------|---------|--------|
-| 1 | Stale population count after truncation | ✅ Real bug | **Fix** — 2-line recount after truncation |
-| 2 | Frame-rate-dependent sim speed | ⚠️ Valid but low impact | **Skip** — acceptable for a toy; fix adds complexity |
-| 3 | O(n²) sensing | ❌ Premature optimization | **Skip** — ~104k trivial ops is <1ms |
-| 4 | Array allocation in hot path | ❌ Premature optimization | **Skip** — negligible GC pressure |
-| 5 | HiDPI canvas blurriness | ✅ Real visual issue | **Fix** — noticeable on most modern displays |
-| 6 | Magic number 6.28... | ⚠️ Minor nit | **Optional** — if touching those lines anyway |
-| 7 | Terse CSS class names | ✅ Readability improvement | **Implemented** — renamed to descriptive class names |
-| 8 | No canvas context null check | ❌ Impossible scenario | **Skip** — defensive code for nothing |
-| 9 | `$` helper defined twice | ⚠️ Minor nit | **Optional** — one-liner hoist |
-| 10 | `reproduce()` side effect | ❌ Misidentified issue | **Skip** — the side effect is correct behavior |
-| 11 | Accessibility | ⚠️ Mostly N/A | **Do only** `<meta name="color-scheme">` |
-| 12a | Dead speed clamp | ✅ Dead code | **Fix** — trivial cleanup |
-| 12b | `_cid` global | ❌ Nit | **Skip** |
-| 12c | Render when paused | ⚠️ Minor | **Optional** — saves battery |
-| 12d | Missing meta description | ❌ N/A | **Skip** — not a deployed site |
+| #   | Item                                    | Verdict                    | Action                                               |
+| --- | --------------------------------------- | -------------------------- | ---------------------------------------------------- |
+| 1   | Stale population count after truncation | ✅ Real bug                | **Fix** — 2-line recount after truncation            |
+| 2   | Frame-rate-dependent sim speed          | ⚠️ Valid but low impact    | **Skip** — acceptable for a toy; fix adds complexity |
+| 3   | O(n²) sensing                           | ❌ Premature optimization  | **Skip** — ~104k trivial ops is <1ms                 |
+| 4   | Array allocation in hot path            | ❌ Premature optimization  | **Skip** — negligible GC pressure                    |
+| 5   | HiDPI canvas blurriness                 | ✅ Real visual issue       | **Fix** — noticeable on most modern displays         |
+| 6   | Magic number 6.28...                    | ⚠️ Minor nit               | **Optional** — if touching those lines anyway        |
+| 7   | Terse CSS class names                   | ✅ Readability improvement | **Implemented** — renamed to descriptive class names |
+| 8   | No canvas context null check            | ❌ Impossible scenario     | **Skip** — defensive code for nothing                |
+| 9   | `$` helper defined twice                | ⚠️ Minor nit               | **Optional** — one-liner hoist                       |
+| 10  | `reproduce()` side effect               | ❌ Misidentified issue     | **Skip** — the side effect is correct behavior       |
+| 11  | Accessibility                           | ⚠️ Mostly N/A              | **Do only** `<meta name="color-scheme">`             |
+| 12a | Dead speed clamp                        | ✅ Dead code               | **Fix** — trivial cleanup                            |
+| 12b | `_cid` global                           | ❌ Nit                     | **Skip**                                             |
+| 12c | Render when paused                      | ⚠️ Minor                   | **Optional** — saves battery                         |
+| 12d | Missing meta description                | ❌ N/A                     | **Skip** — not a deployed site                       |
 
 ### Bottom line:
+
 The implemented updates now include stale-count bug fix, HiDPI support, dead-clamp cleanup, `color-scheme` meta, and a readability class-name refactor. Remaining items are mostly optional/premature optimizations or context-dependent tradeoffs.

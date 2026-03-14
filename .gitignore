@@ -2,5 +2,10 @@
 ReactApp/node_modules/
 ReactApp/dist/
 ReactApp/.vite/
+ReactApp/coverage/
+.env
+.env.*
+*.tsbuildinfo
 *.log
+.DS_Store
 Thumbs.db

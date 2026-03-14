@@ -41,16 +41,16 @@ npm run preview   # preview the production build locally
 
 ## Controls
 
-| Control | Action |
-|---------|--------|
-| **Click** canvas | Select a creature to inspect its neural network |
-| **Double-click** canvas | Spawn food at cursor position |
-| **Space** | Toggle pause/play |
-| **+** / **-** | Increase/decrease simulation speed |
-| Speed slider | 1×–10× simulation speed |
-| Mutation slider | 1%–30% mutation rate |
-| Trails button | Toggle movement trails |
-| Reset button | Reset the entire simulation |
+| Control                 | Action                                          |
+| ----------------------- | ----------------------------------------------- |
+| **Click** canvas        | Select a creature to inspect its neural network |
+| **Double-click** canvas | Spawn food at cursor position                   |
+| **Space**               | Toggle pause/play                               |
+| **+** / **-**           | Increase/decrease simulation speed              |
+| Speed slider            | 1×–10× simulation speed                         |
+| Mutation slider         | 1%–30% mutation rate                            |
+| Trails button           | Toggle movement trails                          |
+| Reset button            | Reset the entire simulation                     |
 
 ## Project Structure
 
@@ -113,13 +113,13 @@ npm run test:coverage
 
 Tests target near-100% coverage across all source files:
 
-| Category | Statements | Branches | Functions | Lines |
-|----------|-----------|----------|-----------|-------|
-| Engine (`src/engine/`) | 100% | 100% | 100% | 100% |
-| Renderers (`src/renderers/`) | 100% | 95%+ | 100% | 100% |
-| Components (`src/components/`) | 90%+ | 66%+ | 100% | 100% |
-| App & Root | 98%+ | 85%+ | 100% | 98%+ |
-| **Overall** | **99%+** | **96%+** | **100%** | **99%+** |
+| Category                       | Statements | Branches | Functions | Lines    |
+| ------------------------------ | ---------- | -------- | --------- | -------- |
+| Engine (`src/engine/`)         | 100%       | 100%     | 100%      | 100%     |
+| Renderers (`src/renderers/`)   | 100%       | 95%+     | 100%      | 100%     |
+| Components (`src/components/`) | 90%+       | 66%+     | 100%      | 100%     |
+| App & Root                     | 98%+       | 85%+     | 100%      | 98%+     |
+| **Overall**                    | **99%+**   | **96%+** | **100%**  | **99%+** |
 
 > Remaining branch gaps in components are untestable defensive guards (`if (!canvas) return`) that v8 coverage counts through JSX transpilation but can never execute in normal rendering.
 
