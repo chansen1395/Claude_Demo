@@ -88,8 +88,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
       <div id="stats">
         <div class="stat-group"><div class="stat-group-title">Herbivores</div><div class="stat-row"><span class="stat-label">Alive</span><span class="stat-value" id="st-herb">0</span></div><div class="stat-row"><span class="stat-label">Avg Energy</span><span class="stat-value" id="st-herb-e">0</span></div></div>
         <div class="stat-group"><div class="stat-group-title">Carnivores</div><div class="stat-row danger"><span class="stat-label">Alive</span><span class="stat-value" id="st-carn">0</span></div><div class="stat-row danger"><span class="stat-label">Avg Energy</span><span class="stat-value" id="st-carn-e">0</span></div></div>
-        <div class="stat-group"><div class="stat-group-title">Ecosystem</div><div class="stat-row"><span class="stat-label">Food</span><span class="stat-value" id="st-food">0</span></div><div class="stat-row"><span class="stat-label">Best Fit</span><span class="stat-value" id="st-best">0</span></div></div>
-        <div class="stat-group"><div class="stat-group-title">Evolution</div><div class="stat-row"><span class="stat-label">Generation</span><span class="stat-value" id="st-gen">0</span></div><div class="stat-row"><span class="stat-label">Time</span><span class="stat-value" id="st-time">0s</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Omnivores</div><div class="stat-row warn"><span class="stat-label">Alive</span><span class="stat-value" id="st-omni">0</span></div><div class="stat-row warn"><span class="stat-label">Avg Energy</span><span class="stat-value" id="st-omni-e">0</span></div></div>
+        <div class="stat-group"><div class="stat-group-title">Ecosystem</div><div class="stat-row"><span class="stat-label">Food</span><span class="stat-value" id="st-food">0</span></div><div class="stat-row"><span class="stat-label">Best Fit</span><span class="stat-value" id="st-best">0</span></div><div class="stat-row"><span class="stat-label">Generation</span><span class="stat-value" id="st-gen">0</span></div><div class="stat-row"><span class="stat-label">Time</span><span class="stat-value" id="st-time">0s</span></div></div>
       </div>
     </div>
     <div class="panel"><h3>Population Dynamics</h3><canvas id="graphCanvas"></canvas></div>
@@ -114,13 +114,15 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 // ════════════════════════════════════════════════════════════════════════════
 const CFG = {
   W: 900, H: 650,
-  INIT_HERBS: 50, INIT_CARNS: 12,
-  MAX_POP: 200, MIN_HERBS: 15, MIN_CARNS: 5,
+  INIT_HERBS: 50, INIT_CARNS: 12, INIT_OMNIS: 8,
+  MAX_POP: 250, MIN_HERBS: 15, MIN_CARNS: 5, MIN_OMNIS: 3,
   TOPOLOGY: [10, 8, 6, 3],
   HERB_SPEED: 110, HERB_TURN: 0.15, HERB_MAX_E: 100, HERB_META: 3,
   HERB_EAT_R: 16, HERB_FOOD_E: 30, HERB_REPR_T: 0.70, HERB_REPR_C: 0.40, HERB_SZ: 7,
   CARN_SPEED: 140, CARN_TURN: 0.18, CARN_MAX_E: 120, CARN_META: 5,
   CARN_EAT_R: 20, CARN_PREY_E: 55, CARN_REPR_T: 0.70, CARN_REPR_C: 0.40, CARN_SZ: 9,
+  OMNI_SPEED: 120, OMNI_TURN: 0.16, OMNI_MAX_E: 110, OMNI_META: 4,
+  OMNI_EAT_R: 18, OMNI_FOOD_E: 20, OMNI_PREY_E: 40, OMNI_REPR_T: 0.70, OMNI_REPR_C: 0.40, OMNI_SZ: 8,
   INIT_FOOD: 80, MAX_FOOD: 120, FOOD_RATE: 3,
   MUT_RATE: 0.08, MUT_STR: 0.4,
   SENSE: 200, TRAIL: 10,
@@ -256,13 +258,19 @@ class Creature {
     this.heading = Math.random() * TAU;
     this.speed = 0;
     this.herb = species === 'herb';
-    this.maxE = this.herb ? CFG.HERB_MAX_E : CFG.CARN_MAX_E;
+    this.carn = species === 'carn';
+    this.omni = species === 'omni';
+    if (this.herb) {
+      this.maxE = CFG.HERB_MAX_E; this.maxSpd = CFG.HERB_SPEED; this.maxTrn = CFG.HERB_TURN;
+      this.eatR = CFG.HERB_EAT_R; this.meta = CFG.HERB_META; this.sz = CFG.HERB_SZ;
+    } else if (this.carn) {
+      this.maxE = CFG.CARN_MAX_E; this.maxSpd = CFG.CARN_SPEED; this.maxTrn = CFG.CARN_TURN;
+      this.eatR = CFG.CARN_EAT_R; this.meta = CFG.CARN_META; this.sz = CFG.CARN_SZ;
+    } else {
+      this.maxE = CFG.OMNI_MAX_E; this.maxSpd = CFG.OMNI_SPEED; this.maxTrn = CFG.OMNI_TURN;
+      this.eatR = CFG.OMNI_EAT_R; this.meta = CFG.OMNI_META; this.sz = CFG.OMNI_SZ;
+    }
     this.energy = this.maxE * 0.6;
-    this.maxSpd = this.herb ? CFG.HERB_SPEED : CFG.CARN_SPEED;
-    this.maxTrn = this.herb ? CFG.HERB_TURN : CFG.CARN_TURN;
-    this.eatR = this.herb ? CFG.HERB_EAT_R : CFG.CARN_EAT_R;
-    this.meta = this.herb ? CFG.HERB_META : CFG.CARN_META;
-    this.sz = this.herb ? CFG.HERB_SZ : CFG.CARN_SZ;
     this.fitness = 0; this.foodEaten = 0; this.age = 0;
     this.dead = false; this.wantsEat = false;
     this.trail = []; this.acts = null; this.lastRepro = -5;
@@ -274,7 +282,9 @@ class Creature {
     let h = 0;
     for (let i = 0; i < Math.min(10, g.length); i++) h += Math.abs(g[i]) * (i + 1);
     h = (h * 137.508) % 1;
-    return this.herb ? Math.floor(100 + h * 120) : Math.floor((345 + h * 55) % 360);
+    if (this.herb) return Math.floor(100 + h * 120);
+    if (this.carn) return Math.floor((345 + h * 55) % 360);
+    return Math.floor(25 + h * 40);
   }
 
   _wallDist(relAngle) {
@@ -293,15 +303,16 @@ class Creature {
   sense(sim) {
     const inp = new Float64Array(10);
 
-    // Food: plants for herbs, herbivores for carns
+    // Food: plants for herbs, herbivores for carns, both for omnis
     let fEnt = null, fD = CFG.SENSE;
-    if (this.herb) {
+    if (this.herb || this.omni) {
       for (const f of sim.food) {
         if (f.eaten) continue;
         const d = dist(this, f);
         if (d < fD) { fD = d; fEnt = f; }
       }
-    } else {
+    }
+    if (this.carn || this.omni) {
       for (const c of sim.creatures) {
         if (c.dead || !c.herb) continue;
         const d = dist(this, c);
@@ -313,11 +324,13 @@ class Creature {
       inp[1] = fD / CFG.SENSE;
     } else { inp[1] = 1; }
 
-    // Threat: carnivores for herbs, nothing for carns
+    // Threat: predators (carns+omnis for herbs, carns for omnis, nothing for carns)
     let tEnt = null, tD = CFG.SENSE;
-    if (this.herb) {
+    if (this.herb || this.omni) {
       for (const c of sim.creatures) {
-        if (c.dead || c.herb) continue;
+        if (c.dead || c === this) continue;
+        const isThreat = this.herb ? (c.carn || c.omni) : c.carn;
+        if (!isThreat) continue;
         const d = dist(this, c);
         if (d < tD) { tD = d; tEnt = c; }
       }
@@ -330,7 +343,7 @@ class Creature {
     // Friend: nearest same species
     let frEnt = null, frD = CFG.SENSE;
     for (const c of sim.creatures) {
-      if (c.dead || c === this || c.herb !== this.herb) continue;
+      if (c.dead || c === this || c.species !== this.species) continue;
       const d = dist(this, c);
       if (d < frD) { frD = d; frEnt = c; }
     }
@@ -381,15 +394,15 @@ class Creature {
   }
 
   reproduce(sim) {
-    const thresh = this.herb ? CFG.HERB_REPR_T : CFG.CARN_REPR_T;
-    const cost = this.herb ? CFG.HERB_REPR_C : CFG.CARN_REPR_C;
+    const thresh = this.herb ? CFG.HERB_REPR_T : this.carn ? CFG.CARN_REPR_T : CFG.OMNI_REPR_T;
+    const cost = this.herb ? CFG.HERB_REPR_C : this.carn ? CFG.CARN_REPR_C : CFG.OMNI_REPR_C;
     if (this.energy < this.maxE * thresh) return null;
     if (sim.time - this.lastRepro < 2) return null;
 
     // Find nearby mate
     let mate = null, mD = 120;
     for (const c of sim.creatures) {
-      if (c.dead || c === this || c.herb !== this.herb) continue;
+      if (c.dead || c === this || c.species !== this.species) continue;
       if (c.energy < c.maxE * thresh) continue;
       const d = dist(this, c);
       if (d < mD) { mD = d; mate = c; }
@@ -439,6 +452,8 @@ class Simulation {
       this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'herb'));
     for (let i = 0; i < CFG.INIT_CARNS; i++)
       this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'carn'));
+    for (let i = 0; i < CFG.INIT_OMNIS; i++)
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'omni'));
     for (let i = 0; i < CFG.INIT_FOOD; i++)
       this.food.push(new Food(Math.random() * CFG.W, Math.random() * CFG.H));
   }
@@ -458,13 +473,14 @@ class Simulation {
     // Update creatures
     for (const c of this.creatures) c.update(dt, this);
 
-    // Herbivores eat food
+    // Herbivores & omnivores eat food
     for (const c of this.creatures) {
-      if (c.dead || !c.herb || !c.wantsEat) continue;
+      if (c.dead || c.carn || !c.wantsEat) continue;
       for (const f of this.food) {
         if (f.eaten) continue;
         if (dist(c, f) < c.eatR) {
-          c.energy = Math.min(c.energy + CFG.HERB_FOOD_E, c.maxE);
+          const foodE = c.herb ? CFG.HERB_FOOD_E : CFG.OMNI_FOOD_E;
+          c.energy = Math.min(c.energy + foodE, c.maxE);
           c.foodEaten++; c.fitness += 1; f.eaten = true;
           this.burst(f.x, f.y, hsl(140, 100, 60), 6, 70);
           break;
@@ -472,15 +488,29 @@ class Simulation {
       }
     }
 
-    // Carnivores eat herbivores
+    // Carnivores eat herbivores & omnivores
     for (const c of this.creatures) {
-      if (c.dead || c.herb || !c.wantsEat) continue;
+      if (c.dead || !c.carn || !c.wantsEat) continue;
       for (const prey of this.creatures) {
-        if (prey.dead || !prey.herb) continue;
+        if (prey.dead || prey.carn) continue;
         if (dist(c, prey) < c.eatR) {
           c.energy = Math.min(c.energy + CFG.CARN_PREY_E, c.maxE);
           c.foodEaten++; c.fitness += 5; prey.dead = true;
           this.burst(prey.x, prey.y, hsl(0, 100, 55), 10, 100);
+          break;
+        }
+      }
+    }
+
+    // Omnivores eat herbivores
+    for (const c of this.creatures) {
+      if (c.dead || !c.omni || !c.wantsEat) continue;
+      for (const prey of this.creatures) {
+        if (prey.dead || !prey.herb) continue;
+        if (dist(c, prey) < c.eatR) {
+          c.energy = Math.min(c.energy + CFG.OMNI_PREY_E, c.maxE);
+          c.foodEaten++; c.fitness += 3; prey.dead = true;
+          this.burst(prey.x, prey.y, hsl(30, 100, 55), 8, 80);
           break;
         }
       }
@@ -521,13 +551,13 @@ class Simulation {
     }
 
     // Population management
-    let herbs = 0, carns = 0;
-    for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
+    let herbs = 0, carns = 0, omnis = 0;
+    for (const c of this.creatures) { if (c.herb) herbs++; else if (c.carn) carns++; else omnis++; }
     if (this.creatures.length > CFG.MAX_POP) {
       this.creatures.sort((a, b) => b.fitness - a.fitness);
       this.creatures.length = CFG.MAX_POP;
-      herbs = 0; carns = 0;
-      for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
+      herbs = 0; carns = 0; omnis = 0;
+      for (const c of this.creatures) { if (c.herb) herbs++; else if (c.carn) carns++; else omnis++; }
     }
     while (herbs < CFG.MIN_HERBS) {
       this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'herb'));
@@ -536,6 +566,10 @@ class Simulation {
     while (carns < CFG.MIN_CARNS) {
       this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'carn'));
       carns++;
+    }
+    while (omnis < CFG.MIN_OMNIS) {
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'omni'));
+      omnis++;
     }
 
     // Update particles
@@ -546,25 +580,28 @@ class Simulation {
     this.histTimer += dt;
     if (this.histTimer >= 0.5) {
       this.histTimer -= 0.5;
-      herbs = 0; carns = 0;
-      for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
-      this.history.push({ h: herbs, c: carns });
+      herbs = 0; carns = 0; omnis = 0;
+      for (const c of this.creatures) { if (c.herb) herbs++; else if (c.carn) carns++; else omnis++; }
+      this.history.push({ h: herbs, c: carns, o: omnis });
       if (this.history.length > 360) this.history.shift();
     }
   }
 
   stats() {
-    let herbs = 0, carns = 0, hE = 0, cE = 0, maxGen = 0, bf = this.bestFitness;
+    let herbs = 0, carns = 0, omnis = 0, hE = 0, cE = 0, oE = 0, maxGen = 0, bf = this.bestFitness;
     for (const c of this.creatures) {
-      if (c.herb) { herbs++; hE += c.energy; } else { carns++; cE += c.energy; }
+      if (c.herb) { herbs++; hE += c.energy; }
+      else if (c.carn) { carns++; cE += c.energy; }
+      else { omnis++; oE += c.energy; }
       if (c.gen > maxGen) maxGen = c.gen;
       if (c.fitness > bf) bf = c.fitness;
     }
     this.bestFitness = bf;
     return {
-      herbs, carns, food: this.food.length,
+      herbs, carns, omnis, food: this.food.length,
       hE: herbs ? Math.round(hE / herbs) : 0,
       cE: carns ? Math.round(cE / carns) : 0,
+      oE: omnis ? Math.round(oE / omnis) : 0,
       maxGen, bestFit: bf.toFixed(1),
       time: this.time
     };
@@ -787,8 +824,10 @@ class BrainViz {
     }
 
     // Update stat display
-    $('bs-species').textContent = creature.herb ? 'Herbivore' : 'Carnivore';
-    $('bs-species').style.color = creature.herb ? '#00ff88' : '#ff4466';
+    const spName = creature.herb ? 'Herbivore' : creature.carn ? 'Carnivore' : 'Omnivore';
+    const spColor = creature.herb ? '#00ff88' : creature.carn ? '#ff4466' : '#ff9933';
+    $('bs-species').textContent = spName;
+    $('bs-species').style.color = spColor;
     $('bs-gen').textContent = 'G' + creature.gen;
     $('bs-energy').textContent = Math.round(creature.energy);
     $('bs-fitness').textContent = creature.fitness.toFixed(1);
@@ -839,7 +878,7 @@ class Graph {
 
     // Find max
     let maxV = 10;
-    for (const d of history) maxV = Math.max(maxV, d.h, d.c);
+    for (const d of history) maxV = Math.max(maxV, d.h, d.c, d.o);
     maxV = Math.ceil(maxV * 1.15);
 
     // Y axis labels
@@ -862,11 +901,13 @@ class Graph {
     };
     drawLine('h', '#00ff88');
     drawLine('c', '#ff4466');
+    drawLine('o', '#ff9933');
 
     // Legend
     ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'left';
-    ctx.fillStyle = '#00ff88'; ctx.fillText('● Herbivores', W - 120, 18);
-    ctx.fillStyle = '#ff4466'; ctx.fillText('● Carnivores', W - 120, 30);
+    ctx.fillStyle = '#00ff88'; ctx.fillText('● Herbs', W - 85, 14);
+    ctx.fillStyle = '#ff4466'; ctx.fillText('● Carns', W - 85, 25);
+    ctx.fillStyle = '#ff9933'; ctx.fillText('● Omnis', W - 85, 36);
   }
 }
 
@@ -948,6 +989,8 @@ document.addEventListener('DOMContentLoaded', () => {
       $('st-herb-e').textContent = s.hE;
       $('st-carn').textContent = s.carns;
       $('st-carn-e').textContent = s.cE;
+      $('st-omni').textContent = s.omnis;
+      $('st-omni-e').textContent = s.oE;
       $('st-food').textContent = s.food;
       $('st-best').textContent = s.bestFit;
       $('st-gen').textContent = s.maxGen;
