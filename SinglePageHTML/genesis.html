@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENESIS — Neuroevolution Ecosystem Simulator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#0a0a1a 0%,#0f0f2e 100%);color:#e0e0e8;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* === HEADER === */
+header{padding:0.8rem 1.5rem;border-bottom:1px solid rgba(0,255,136,0.15);background:rgba(15,15,46,0.7);backdrop-filter:blur(10px);display:flex;align-items:baseline;gap:1rem}
+h1{font-size:2rem;font-weight:700;letter-spacing:4px;background:linear-gradient(90deg,#00ff88,#4488ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{font-size:0.8rem;color:#4488ff;letter-spacing:2px;opacity:0.8}
+
+/* === MAIN LAYOUT === */
+main{flex:1;display:flex;gap:0.75rem;padding:0.75rem;overflow:hidden;min-height:0}
+.sim-panel{flex:1;display:flex;min-width:0}
+#simCanvas{width:100%;height:100%;background:#0a0a1a;border:1.5px solid rgba(0,255,136,0.25);border-radius:6px;box-shadow:0 0 20px rgba(0,255,136,0.15),inset 0 0 15px rgba(0,255,136,0.03);cursor:crosshair}
+.info-panel{width:370px;display:flex;flex-direction:column;gap:0.6rem;overflow:hidden;flex-shrink:0}
+.panel{background:linear-gradient(135deg,rgba(17,17,40,0.92),rgba(25,25,55,0.85));border:1px solid rgba(0,255,136,0.18);border-radius:6px;padding:0.7rem;backdrop-filter:blur(8px)}
+.panel h3{font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:#4488ff;margin-bottom:0.5rem;opacity:0.8}
+
+/* === BRAIN PANEL === */
+.brain-section{display:flex;flex-direction:column}
+#brainCanvas{width:100%;height:220px;background:#080818;border:1px solid rgba(68,136,255,0.25);border-radius:4px;margin-bottom:0.5rem}
+.brain-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;font-size:0.78rem;font-family:'Courier New',monospace}
+.brain-stats .si{display:flex;justify-content:space-between;padding:0.25rem 0.4rem;background:rgba(0,255,136,0.04);border-radius:3px;border-left:2px solid rgba(0,255,136,0.3)}
+.brain-stats .sl{color:#5588cc}.brain-stats .sv{color:#00ff88;font-weight:600}
+
+/* === STATS PANEL === */
+.stats-section{flex:1;min-height:0}
+#stats{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-family:'Courier New',monospace;font-size:0.8rem}
+.sg{background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-radius:4px;padding:0.5rem}
+.sg-t{color:#4488ff;font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.3rem;opacity:0.7}
+.sr{display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.75rem}
+.sr .l{color:#6677aa}.sr .v{color:#00ff88;font-weight:600}
+.sr.warn .v{color:#ffaa44}.sr.danger .v{color:#ff4466}
+
+/* === GRAPH PANEL === */
+#graphCanvas{width:100%;height:140px;background:#080818;border:1px solid rgba(255,68,102,0.2);border-radius:4px}
+
+/* === CONTROLS === */
+footer{padding:0.6rem 1.5rem;background:rgba(15,15,46,0.85);backdrop-filter:blur(10px);border-top:1px solid rgba(0,255,136,0.12)}
+.controls{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+.controls button{padding:0.4rem 0.9rem;background:transparent;border:1.5px solid #4488ff;color:#4488ff;border-radius:4px;cursor:pointer;font-size:0.8rem;font-weight:600;letter-spacing:1px;transition:all 0.2s}
+.controls button:hover{border-color:#00ff88;color:#00ff88;box-shadow:0 0 12px rgba(0,255,136,0.3)}
+.controls button.active{background:rgba(0,255,136,0.15);border-color:#00ff88;color:#00ff88}
+.cg{display:flex;align-items:center;gap:0.5rem}
+.cg label{font-size:0.75rem;color:#6677aa;font-weight:600;letter-spacing:1px}
+.cg .cv{min-width:32px;text-align:right;font-family:'Courier New',monospace;color:#00ff88;font-weight:600;font-size:0.8rem}
+input[type=range]{width:100px;height:4px;border-radius:2px;background:linear-gradient(to right,#4488ff,#00ff88);outline:none;-webkit-appearance:none;appearance:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#00ff88;cursor:pointer;box-shadow:0 0 8px rgba(0,255,136,0.5)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#00ff88;cursor:pointer;border:none;box-shadow:0 0 8px rgba(0,255,136,0.5)}
+.spacer{flex:1}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:rgba(0,255,136,0.03)}::-webkit-scrollbar-thumb{background:rgba(0,255,136,0.2);border-radius:3px}
+
+/* === RESPONSIVE === */
+@media(max-width:1100px){main{flex-direction:column}.info-panel{width:100%;flex-direction:row;height:260px}.info-panel>.panel{flex:1;min-width:0}}
+@media(max-width:700px){.info-panel{flex-direction:column;height:auto}footer{padding:0.5rem}.controls{gap:0.6rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>GENESIS</h1>
+  <span class="subtitle">Neuroevolution Ecosystem Simulator</span>
+</header>
+<main>
+  <div class="sim-panel"><canvas id="simCanvas"></canvas></div>
+  <div class="info-panel">
+    <div class="panel brain-section">
+      <h3>Neural Network</h3>
+      <canvas id="brainCanvas"></canvas>
+      <div class="brain-stats" id="brainStats">
+        <div class="si"><span class="sl">Species</span><span class="sv" id="bs-species">—</span></div>
+        <div class="si"><span class="sl">Gen</span><span class="sv" id="bs-gen">—</span></div>
+        <div class="si"><span class="sl">Energy</span><span class="sv" id="bs-energy">—</span></div>
+        <div class="si"><span class="sl">Fitness</span><span class="sv" id="bs-fitness">—</span></div>
+        <div class="si"><span class="sl">Age</span><span class="sv" id="bs-age">—</span></div>
+        <div class="si"><span class="sl">Eaten</span><span class="sv" id="bs-eaten">—</span></div>
+      </div>
+    </div>
+    <div class="panel stats-section">
+      <h3>Statistics</h3>
+      <div id="stats">
+        <div class="sg"><div class="sg-t">Herbivores</div><div class="sr"><span class="l">Alive</span><span class="v" id="st-herb">0</span></div><div class="sr"><span class="l">Avg Energy</span><span class="v" id="st-herb-e">0</span></div></div>
+        <div class="sg"><div class="sg-t">Carnivores</div><div class="sr danger"><span class="l">Alive</span><span class="v" id="st-carn">0</span></div><div class="sr danger"><span class="l">Avg Energy</span><span class="v" id="st-carn-e">0</span></div></div>
+        <div class="sg"><div class="sg-t">Ecosystem</div><div class="sr"><span class="l">Food</span><span class="v" id="st-food">0</span></div><div class="sr"><span class="l">Best Fit</span><span class="v" id="st-best">0</span></div></div>
+        <div class="sg"><div class="sg-t">Evolution</div><div class="sr"><span class="l">Generation</span><span class="v" id="st-gen">0</span></div><div class="sr"><span class="l">Time</span><span class="v" id="st-time">0s</span></div></div>
+      </div>
+    </div>
+    <div class="panel"><h3>Population Dynamics</h3><canvas id="graphCanvas"></canvas></div>
+  </div>
+</main>
+<footer>
+  <div class="controls">
+    <button id="btnPlay" class="active">⏸ PAUSE</button>
+    <div class="cg"><label>Speed</label><input type="range" id="slSpeed" min="1" max="10" value="1"><span class="cv" id="vSpeed">1×</span></div>
+    <div class="cg"><label>Mutation</label><input type="range" id="slMut" min="1" max="30" value="8"><span class="cv" id="vMut">8%</span></div>
+    <button id="btnTrails" class="active">☁ Trails</button>
+    <div class="spacer"></div>
+    <button id="btnReset">↻ Reset</button>
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ════════════════════════════════════════════════════════════════════════════
+const CFG = {
+  W: 900, H: 650,
+  INIT_HERBS: 50, INIT_CARNS: 12,
+  MAX_POP: 200, MIN_HERBS: 15, MIN_CARNS: 5,
+  TOPOLOGY: [10, 8, 6, 3],
+  HERB_SPEED: 110, HERB_TURN: 0.15, HERB_MAX_E: 100, HERB_META: 3,
+  HERB_EAT_R: 16, HERB_FOOD_E: 30, HERB_REPR_T: 0.70, HERB_REPR_C: 0.40, HERB_SZ: 7,
+  CARN_SPEED: 140, CARN_TURN: 0.18, CARN_MAX_E: 120, CARN_META: 5,
+  CARN_EAT_R: 20, CARN_PREY_E: 55, CARN_REPR_T: 0.70, CARN_REPR_C: 0.40, CARN_SZ: 9,
+  INIT_FOOD: 80, MAX_FOOD: 120, FOOD_RATE: 3,
+  MUT_RATE: 0.08, MUT_STR: 0.4,
+  SENSE: 200, TRAIL: 10,
+};
+
+// ════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════════════════════
+function gaussRand() {
+  const u = Math.random(), v = Math.random();
+  return Math.sqrt(-2 * Math.log(u || 1e-10)) * Math.cos(6.283185307 * v);
+}
+function sigmoid(x) { return x > 15 ? 1 : x < -15 ? 0 : 1 / (1 + Math.exp(-x)); }
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+function dist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
+function normAngle(a) { a %= 6.283185307; if (a > Math.PI) a -= 6.283185307; if (a < -Math.PI) a += 6.283185307; return a; }
+function hsl(h, s, l, a) { return a !== undefined ? `hsla(${h},${s}%,${l}%,${a})` : `hsl(${h},${s}%,${l}%)`; }
+
+// ════════════════════════════════════════════════════════════════════════════
+// NEURAL NETWORK
+// ════════════════════════════════════════════════════════════════════════════
+class NN {
+  constructor(topo) {
+    this.topo = topo;
+    this.layers = [];
+    for (let i = 0; i < topo.length - 1; i++) {
+      const fi = topo[i], fo = topo[i + 1];
+      const s = Math.sqrt(2 / (fi + fo));
+      const w = new Float64Array(fo * fi);
+      const b = new Float64Array(fo);
+      for (let j = 0; j < w.length; j++) w[j] = gaussRand() * s;
+      for (let j = 0; j < b.length; j++) b[j] = gaussRand() * s * 0.01;
+      this.layers.push({ w, b });
+    }
+  }
+
+  forward(inp) {
+    const acts = [new Float64Array(inp)];
+    let cur = acts[0];
+    for (let li = 0; li < this.layers.length; li++) {
+      const { w, b } = this.layers[li];
+      const fi = this.topo[li], fo = this.topo[li + 1];
+      const out = new Float64Array(fo);
+      const isOut = li === this.layers.length - 1;
+      for (let j = 0; j < fo; j++) {
+        let z = b[j];
+        for (let k = 0; k < fi; k++) z += w[j * fi + k] * cur[k];
+        out[j] = isOut ? sigmoid(z) : Math.tanh(z);
+      }
+      acts.push(out);
+      cur = out;
+    }
+    return acts; // [input, hidden1, hidden2, output]
+  }
+
+  genome() {
+    let n = 0;
+    for (const l of this.layers) n += l.w.length + l.b.length;
+    const g = new Float64Array(n);
+    let o = 0;
+    for (const l of this.layers) { g.set(l.w, o); o += l.w.length; g.set(l.b, o); o += l.b.length; }
+    return g;
+  }
+
+  setGenome(g) {
+    let o = 0;
+    for (const l of this.layers) {
+      l.w.set(g.subarray(o, o + l.w.length)); o += l.w.length;
+      l.b.set(g.subarray(o, o + l.b.length)); o += l.b.length;
+    }
+  }
+
+  clone() { const n = new NN(this.topo); n.setGenome(new Float64Array(this.genome())); return n; }
+
+  static crossover(a, b) {
+    const g1 = a.genome(), g2 = b.genome(), child = new Float64Array(g1.length);
+    for (let i = 0; i < child.length; i++) child[i] = Math.random() < 0.5 ? g1[i] : g2[i];
+    return child;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GENETIC ALGORITHM
+// ════════════════════════════════════════════════════════════════════════════
+function mutate(genome, rate, str) {
+  const g = new Float64Array(genome);
+  for (let i = 0; i < g.length; i++) {
+    if (Math.random() < rate) {
+      g[i] += gaussRand() * (Math.random() < 0.1 ? str * 5 : str);
+    }
+  }
+  return g;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PARTICLE
+// ════════════════════════════════════════════════════════════════════════════
+class Particle {
+  constructor(x, y, vx, vy, color, life) {
+    this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+    this.color = color; this.life = life; this.maxLife = life;
+    this.sz = 2 + Math.random() * 2;
+  }
+  update(dt) { this.x += this.vx * dt; this.y += this.vy * dt; this.life -= dt; }
+  get alpha() { return Math.max(0, this.life / this.maxLife); }
+  get dead() { return this.life <= 0; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FOOD
+// ════════════════════════════════════════════════════════════════════════════
+class Food {
+  constructor(x, y) { this.x = x; this.y = y; this.eaten = false; this.phase = Math.random() * 6.28; }
+  update(dt) { this.phase = (this.phase + dt * 2.5) % 6.28; }
+  get pulse() { return 1 + Math.sin(this.phase) * 0.25; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CREATURE
+// ════════════════════════════════════════════════════════════════════════════
+let _cid = 0;
+class Creature {
+  constructor(x, y, species, brain, gen) {
+    this.id = _cid++;
+    this.x = clamp(x, 5, CFG.W - 5);
+    this.y = clamp(y, 5, CFG.H - 5);
+    this.species = species;
+    this.brain = brain || new NN(CFG.TOPOLOGY);
+    this.gen = gen || 0;
+    this.heading = Math.random() * 6.28;
+    this.speed = 0;
+    this.herb = species === 'herb';
+    this.maxE = this.herb ? CFG.HERB_MAX_E : CFG.CARN_MAX_E;
+    this.energy = this.maxE * 0.6;
+    this.maxSpd = this.herb ? CFG.HERB_SPEED : CFG.CARN_SPEED;
+    this.maxTrn = this.herb ? CFG.HERB_TURN : CFG.CARN_TURN;
+    this.eatR = this.herb ? CFG.HERB_EAT_R : CFG.CARN_EAT_R;
+    this.meta = this.herb ? CFG.HERB_META : CFG.CARN_META;
+    this.sz = this.herb ? CFG.HERB_SZ : CFG.CARN_SZ;
+    this.fitness = 0; this.foodEaten = 0; this.age = 0;
+    this.dead = false; this.wantsEat = false;
+    this.trail = []; this.acts = null; this.lastRepro = -5;
+    this.hue = this._hue();
+  }
+
+  _hue() {
+    const g = this.brain.genome();
+    let h = 0;
+    for (let i = 0; i < Math.min(10, g.length); i++) h += Math.abs(g[i]) * (i + 1);
+    h = (h * 137.508) % 1;
+    return this.herb ? Math.floor(100 + h * 120) : Math.floor((345 + h * 55) % 360);
+  }
+
+  _wallDist(relAngle) {
+    const d = this.heading + relAngle;
+    const cx = Math.cos(d), cy = Math.sin(d);
+    let m = CFG.SENSE;
+    if (Math.abs(cx) > 0.001) {
+      m = Math.min(m, cx > 0 ? (CFG.W - this.x) / cx : -this.x / cx);
+    }
+    if (Math.abs(cy) > 0.001) {
+      m = Math.min(m, cy > 0 ? (CFG.H - this.y) / cy : -this.y / cy);
+    }
+    return Math.max(0, m);
+  }
+
+  sense(sim) {
+    const inp = new Float64Array(10);
+
+    // Food: plants for herbs, herbivores for carns
+    let fEnt = null, fD = CFG.SENSE;
+    if (this.herb) {
+      for (const f of sim.food) {
+        if (f.eaten) continue;
+        const d = dist(this, f);
+        if (d < fD) { fD = d; fEnt = f; }
+      }
+    } else {
+      for (const c of sim.creatures) {
+        if (c.dead || !c.herb) continue;
+        const d = dist(this, c);
+        if (d < fD) { fD = d; fEnt = c; }
+      }
+    }
+    if (fEnt) {
+      inp[0] = normAngle(Math.atan2(fEnt.y - this.y, fEnt.x - this.x) - this.heading) / Math.PI;
+      inp[1] = fD / CFG.SENSE;
+    } else { inp[1] = 1; }
+
+    // Threat: carnivores for herbs, nothing for carns
+    let tEnt = null, tD = CFG.SENSE;
+    if (this.herb) {
+      for (const c of sim.creatures) {
+        if (c.dead || c.herb) continue;
+        const d = dist(this, c);
+        if (d < tD) { tD = d; tEnt = c; }
+      }
+    }
+    if (tEnt) {
+      inp[2] = normAngle(Math.atan2(tEnt.y - this.y, tEnt.x - this.x) - this.heading) / Math.PI;
+      inp[3] = tD / CFG.SENSE;
+    } else { inp[3] = 1; }
+
+    // Friend: nearest same species
+    let frEnt = null, frD = CFG.SENSE;
+    for (const c of sim.creatures) {
+      if (c.dead || c === this || c.herb !== this.herb) continue;
+      const d = dist(this, c);
+      if (d < frD) { frD = d; frEnt = c; }
+    }
+    if (frEnt) {
+      inp[4] = normAngle(Math.atan2(frEnt.y - this.y, frEnt.x - this.x) - this.heading) / Math.PI;
+      inp[5] = frD / CFG.SENSE;
+    } else { inp[5] = 1; }
+
+    inp[6] = this.energy / this.maxE;
+    inp[7] = this._wallDist(0) / CFG.SENSE;
+    inp[8] = this._wallDist(Math.PI * 0.5) / CFG.SENSE;
+    inp[9] = this._wallDist(-Math.PI * 0.5) / CFG.SENSE;
+    return inp;
+  }
+
+  update(dt, sim) {
+    if (this.dead) return;
+    this.age += dt;
+
+    const inp = this.sense(sim);
+    const activations = this.brain.forward(inp);
+    this.acts = activations;
+    const out = activations[activations.length - 1]; // output layer
+
+    const turn = (out[0] * 2 - 1) * this.maxTrn;
+    this.heading = normAngle(this.heading + turn);
+    this.speed = out[1] * this.maxSpd;
+    this.wantsEat = out[2] > 0.5;
+
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > CFG.TRAIL) this.trail.shift();
+
+    this.x += Math.cos(this.heading) * this.speed * dt;
+    this.y += Math.sin(this.heading) * this.speed * dt;
+
+    // Bounce off walls
+    if (this.x < 3) { this.x = 3; this.heading = Math.PI - this.heading; }
+    if (this.x > CFG.W - 3) { this.x = CFG.W - 3; this.heading = Math.PI - this.heading; }
+    if (this.y < 3) { this.y = 3; this.heading = -this.heading; }
+    if (this.y > CFG.H - 3) { this.y = CFG.H - 3; this.heading = -this.heading; }
+    this.heading = normAngle(this.heading);
+
+    const spdFrac = this.speed / this.maxSpd;
+    this.energy -= (this.meta + spdFrac * 2) * dt;
+    this.fitness += dt * 0.1;
+
+    if (this.energy <= 0) { this.energy = 0; this.dead = true; }
+  }
+
+  reproduce(sim) {
+    const thresh = this.herb ? CFG.HERB_REPR_T : CFG.CARN_REPR_T;
+    const cost = this.herb ? CFG.HERB_REPR_C : CFG.CARN_REPR_C;
+    if (this.energy < this.maxE * thresh) return null;
+    if (sim.time - this.lastRepro < 2) return null;
+
+    // Find nearby mate
+    let mate = null, mD = 120;
+    for (const c of sim.creatures) {
+      if (c.dead || c === this || c.herb !== this.herb) continue;
+      if (c.energy < c.maxE * thresh) continue;
+      const d = dist(this, c);
+      if (d < mD) { mD = d; mate = c; }
+    }
+
+    let childBrain;
+    if (mate) {
+      const cg = NN.crossover(this.brain, mate.brain);
+      const mg = mutate(cg, sim.mutRate, CFG.MUT_STR);
+      childBrain = new NN(CFG.TOPOLOGY);
+      childBrain.setGenome(mg);
+      mate.energy -= mate.maxE * cost * 0.5;
+      mate.lastRepro = sim.time;
+    } else {
+      childBrain = this.brain.clone();
+      const mg = mutate(childBrain.genome(), sim.mutRate, CFG.MUT_STR);
+      childBrain.setGenome(mg);
+    }
+
+    const a = Math.random() * 6.28;
+    const child = new Creature(
+      this.x + Math.cos(a) * 20, this.y + Math.sin(a) * 20,
+      this.species, childBrain, Math.max(this.gen, mate ? mate.gen : 0) + 1
+    );
+    const eCost = this.maxE * cost;
+    this.energy -= eCost;
+    child.energy = eCost * (mate ? 1.3 : 1);
+    child.energy = clamp(child.energy, 10, child.maxE * 0.6);
+    this.lastRepro = sim.time;
+    return child;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SIMULATION
+// ════════════════════════════════════════════════════════════════════════════
+class Simulation {
+  constructor() { this.reset(); }
+
+  reset() {
+    this.creatures = []; this.food = []; this.particles = [];
+    this.time = 0; this.ticks = 0; this.foodAcc = 0;
+    this.history = []; this.histTimer = 0;
+    this.mutRate = CFG.MUT_RATE;
+    this.bestFitness = 0;
+    for (let i = 0; i < CFG.INIT_HERBS; i++)
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'herb'));
+    for (let i = 0; i < CFG.INIT_CARNS; i++)
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'carn'));
+    for (let i = 0; i < CFG.INIT_FOOD; i++)
+      this.food.push(new Food(Math.random() * CFG.W, Math.random() * CFG.H));
+  }
+
+  burst(x, y, color, n, spd) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.28;
+      const s = spd * (0.5 + Math.random() * 0.5);
+      this.particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s, color, 0.4 + Math.random() * 0.3));
+    }
+  }
+
+  update(dt) {
+    dt = Math.min(dt, 0.025);
+    this.time += dt; this.ticks++;
+
+    // Update creatures
+    for (const c of this.creatures) c.update(dt, this);
+
+    // Herbivores eat food
+    for (const c of this.creatures) {
+      if (c.dead || !c.herb || !c.wantsEat) continue;
+      for (const f of this.food) {
+        if (f.eaten) continue;
+        if (dist(c, f) < c.eatR) {
+          c.energy = Math.min(c.energy + CFG.HERB_FOOD_E, c.maxE);
+          c.foodEaten++; c.fitness += 1; f.eaten = true;
+          this.burst(f.x, f.y, hsl(140, 100, 60), 6, 70);
+          break;
+        }
+      }
+    }
+
+    // Carnivores eat herbivores
+    for (const c of this.creatures) {
+      if (c.dead || c.herb || !c.wantsEat) continue;
+      for (const prey of this.creatures) {
+        if (prey.dead || !prey.herb) continue;
+        if (dist(c, prey) < c.eatR) {
+          c.energy = Math.min(c.energy + CFG.CARN_PREY_E, c.maxE);
+          c.foodEaten++; c.fitness += 5; prey.dead = true;
+          this.burst(prey.x, prey.y, hsl(0, 100, 55), 10, 100);
+          break;
+        }
+      }
+    }
+
+    // Reproduce
+    const babies = [];
+    for (const c of this.creatures) {
+      if (c.dead) continue;
+      const child = c.reproduce(this);
+      if (child) {
+        babies.push(child);
+        c.fitness += 2;
+        this.burst(child.x, child.y, hsl(50, 100, 70), 5, 40);
+      }
+    }
+    for (const b of babies) this.creatures.push(b);
+
+    // Remove dead creatures + death particles
+    for (let i = this.creatures.length - 1; i >= 0; i--) {
+      const c = this.creatures[i];
+      if (c.dead) {
+        this.burst(c.x, c.y, hsl(c.hue, 60, 40), 8, 60);
+        if (c.fitness > this.bestFitness) this.bestFitness = c.fitness;
+        this.creatures.splice(i, 1);
+      }
+    }
+
+    // Update food
+    for (const f of this.food) f.update(dt);
+    this.food = this.food.filter(f => !f.eaten);
+
+    // Spawn food
+    this.foodAcc += dt * CFG.FOOD_RATE;
+    while (this.foodAcc >= 1 && this.food.length < CFG.MAX_FOOD) {
+      this.food.push(new Food(Math.random() * CFG.W, Math.random() * CFG.H));
+      this.foodAcc--;
+    }
+
+    // Population management
+    let herbs = 0, carns = 0;
+    for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
+    if (this.creatures.length > CFG.MAX_POP) {
+      this.creatures.sort((a, b) => b.fitness - a.fitness);
+      this.creatures.length = CFG.MAX_POP;
+    }
+    while (herbs < CFG.MIN_HERBS) {
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'herb'));
+      herbs++;
+    }
+    while (carns < CFG.MIN_CARNS) {
+      this.creatures.push(new Creature(Math.random() * CFG.W, Math.random() * CFG.H, 'carn'));
+      carns++;
+    }
+
+    // Update particles
+    for (const p of this.particles) p.update(dt);
+    this.particles = this.particles.filter(p => !p.dead);
+
+    // Record history
+    this.histTimer += dt;
+    if (this.histTimer >= 0.5) {
+      this.histTimer -= 0.5;
+      herbs = 0; carns = 0;
+      for (const c of this.creatures) { if (c.herb) herbs++; else carns++; }
+      this.history.push({ h: herbs, c: carns });
+      if (this.history.length > 360) this.history.shift();
+    }
+  }
+
+  stats() {
+    let herbs = 0, carns = 0, hE = 0, cE = 0, maxGen = 0, bf = this.bestFitness;
+    for (const c of this.creatures) {
+      if (c.herb) { herbs++; hE += c.energy; } else { carns++; cE += c.energy; }
+      if (c.gen > maxGen) maxGen = c.gen;
+      if (c.fitness > bf) bf = c.fitness;
+    }
+    this.bestFitness = bf;
+    return {
+      herbs, carns, food: this.food.length,
+      hE: herbs ? Math.round(hE / herbs) : 0,
+      cE: carns ? Math.round(cE / carns) : 0,
+      maxGen, bestFit: bf.toFixed(1),
+      time: this.time
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDERER
+// ════════════════════════════════════════════════════════════════════════════
+class Renderer {
+  constructor(canvas, sim) {
+    this.cv = canvas; this.ctx = canvas.getContext('2d'); this.sim = sim;
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  resize() {
+    const r = this.cv.parentElement.getBoundingClientRect();
+    this.cv.width = r.width; this.cv.height = r.height;
+    this.sx = r.width / CFG.W; this.sy = r.height / CFG.H;
+  }
+
+  wx(x) { return x * this.sx; }
+  wy(y) { return y * this.sy; }
+  ws(s) { return s * Math.min(this.sx, this.sy); }
+
+  render(sel, showTrails) {
+    const ctx = this.ctx, w = this.cv.width, h = this.cv.height;
+    ctx.fillStyle = '#08081a'; ctx.fillRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(0,255,136,0.04)'; ctx.lineWidth = 1;
+    const gs = 50 * this.sx;
+    for (let x = gs; x < w; x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    const gsy = 50 * this.sy;
+    for (let y = gsy; y < h; y += gsy) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    // Food
+    ctx.save();
+    for (const f of this.sim.food) {
+      const fx = this.wx(f.x), fy = this.wy(f.y), r = this.ws(3.5 * f.pulse);
+      ctx.shadowColor = '#00ff88'; ctx.shadowBlur = this.ws(12);
+      ctx.fillStyle = 'rgba(0,255,136,0.2)';
+      ctx.beginPath(); ctx.arc(fx, fy, r * 1.8, 0, 6.28); ctx.fill();
+      ctx.fillStyle = '#00ff88';
+      ctx.beginPath(); ctx.arc(fx, fy, r, 0, 6.28); ctx.fill();
+    }
+    ctx.restore();
+
+    // Trails
+    if (showTrails) {
+      for (const c of this.sim.creatures) {
+        const tr = c.trail;
+        for (let i = 0; i < tr.length; i++) {
+          const a = (i / tr.length) * 0.35;
+          ctx.fillStyle = hsl(c.hue, 80, 50, a);
+          ctx.fillRect(this.wx(tr[i].x) - 1, this.wy(tr[i].y) - 1, 2, 2);
+        }
+      }
+    }
+
+    // Creatures
+    for (const c of this.sim.creatures) {
+      const cx = this.wx(c.x), cy = this.wy(c.y);
+      const s = this.ws(c.sz * (0.6 + (c.energy / c.maxE) * 0.5));
+
+      // Glow
+      ctx.fillStyle = hsl(c.hue, 90, 50, 0.15);
+      ctx.beginPath(); ctx.arc(cx, cy, s * 2.2, 0, 6.28); ctx.fill();
+
+      // Body triangle
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(c.heading);
+      ctx.shadowColor = hsl(c.hue, 100, 55); ctx.shadowBlur = this.ws(8);
+      ctx.fillStyle = hsl(c.hue, 85, 55);
+      ctx.beginPath();
+      ctx.moveTo(s * 1.2, 0);
+      ctx.lineTo(-s * 0.7, s * 0.65);
+      ctx.lineTo(-s * 0.3, 0);
+      ctx.lineTo(-s * 0.7, -s * 0.65);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0; ctx.restore();
+
+      // Energy bar
+      const bw = this.ws(c.sz * 2.2), bh = this.ws(1.8);
+      const eFrac = clamp(c.energy / c.maxE, 0, 1);
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(cx - bw / 2, cy - s * 1.5 - bh, bw, bh);
+      ctx.fillStyle = eFrac > 0.3 ? '#00ff88' : eFrac > 0.15 ? '#ffaa33' : '#ff4466';
+      ctx.fillRect(cx - bw / 2, cy - s * 1.5 - bh, bw * eFrac, bh);
+
+      // Selection ring
+      if (sel === c) {
+        const pulse = Math.sin(Date.now() * 0.008) * 2 + 4;
+        ctx.strokeStyle = hsl(c.hue, 100, 65, 0.7);
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, s + this.ws(pulse), 0, 6.28); ctx.stroke();
+      }
+    }
+
+    // Particles
+    for (const p of this.sim.particles) {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(this.wx(p.x), this.wy(p.y), this.ws(p.sz * p.alpha), 0, 6.28); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BRAIN VISUALIZER
+// ════════════════════════════════════════════════════════════════════════════
+const INPUT_LABELS = ['Food Dir', 'Food Dist', 'Threat Dir', 'Threat Dist', 'Ally Dir', 'Ally Dist', 'Energy', 'Wall F', 'Wall L', 'Wall R'];
+const OUTPUT_LABELS = ['Turn', 'Speed', 'Action'];
+
+class BrainViz {
+  constructor(canvas) {
+    this.cv = canvas; this.ctx = canvas.getContext('2d');
+    this.cv.width = 370; this.cv.height = 220;
+  }
+
+  render(creature) {
+    const ctx = this.ctx, W = this.cv.width, H = this.cv.height;
+    ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
+
+    if (!creature || !creature.acts) {
+      ctx.fillStyle = '#4488ff'; ctx.font = 'bold 13px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('Click a creature to inspect', W / 2, H / 2 - 8);
+      ctx.font = '11px system-ui'; ctx.fillStyle = '#556699';
+      ctx.fillText('its neural network in real-time', W / 2, H / 2 + 12);
+      return;
+    }
+
+    const topo = creature.brain.topo;
+    const layers = creature.brain.layers;
+    const acts = creature.acts;
+    const nLayers = topo.length;
+    const maxNodes = Math.max(...topo);
+    const padL = 62, padR = 50, padY = 16;
+    const layerGap = (W - padL - padR) / (nLayers - 1);
+
+    // Compute node positions
+    const pos = [];
+    for (let l = 0; l < nLayers; l++) {
+      pos[l] = [];
+      const n = topo[l];
+      const gap = (H - padY * 2) / (n + 1);
+      const x = padL + l * layerGap;
+      for (let j = 0; j < n; j++) {
+        pos[l][j] = { x, y: padY + gap * (j + 1) };
+      }
+    }
+
+    // Draw connections
+    for (let l = 0; l < layers.length; l++) {
+      const wArr = layers[l].w;
+      const srcN = topo[l], dstN = topo[l + 1];
+      for (let j = 0; j < dstN; j++) {
+        for (let k = 0; k < srcN; k++) {
+          const w = wArr[j * srcN + k];
+          const aw = Math.min(Math.abs(w), 2.5) / 2.5;
+          if (aw < 0.05) continue;
+          const p1 = pos[l][k], p2 = pos[l + 1][j];
+          ctx.strokeStyle = w >= 0
+            ? `rgba(255,110,110,${aw * 0.7})`
+            : `rgba(110,150,255,${aw * 0.7})`;
+          ctx.lineWidth = 0.4 + aw * 2;
+          ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+      }
+    }
+
+    // Draw nodes
+    for (let l = 0; l < nLayers; l++) {
+      for (let j = 0; j < topo[l]; j++) {
+        const act = acts[l] ? Math.abs(acts[l][j]) : 0;
+        const br = clamp(act, 0, 1);
+        const p = pos[l][j];
+        const r = 4.5;
+
+        // Glow
+        ctx.fillStyle = `rgba(0,255,140,${br * 0.25})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.8, 0, 6.28); ctx.fill();
+
+        // Node
+        const lightness = 20 + br * 55;
+        ctx.fillStyle = hsl(l === nLayers - 1 ? 30 : 150, 90, lightness);
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.28); ctx.fill();
+
+        // Border
+        ctx.strokeStyle = `rgba(255,255,255,${0.15 + br * 0.3})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+
+    // Labels
+    ctx.font = 'bold 8px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let j = 0; j < topo[0]; j++) {
+      const act = acts[0] ? acts[0][j] : 0;
+      ctx.fillStyle = hsl(220, 70, 50 + Math.abs(act) * 30);
+      ctx.fillText(INPUT_LABELS[j] || '', pos[0][j].x - 8, pos[0][j].y);
+    }
+    ctx.textAlign = 'left';
+    for (let j = 0; j < topo[nLayers - 1]; j++) {
+      const act = acts[nLayers - 1] ? acts[nLayers - 1][j] : 0;
+      ctx.fillStyle = hsl(15, 80, 50 + act * 30);
+      ctx.fillText(OUTPUT_LABELS[j] || '', pos[nLayers - 1][j].x + 8, pos[nLayers - 1][j].y);
+    }
+
+    // Update stat display
+    const $ = id => document.getElementById(id);
+    $('bs-species').textContent = creature.herb ? 'Herbivore' : 'Carnivore';
+    $('bs-species').style.color = creature.herb ? '#00ff88' : '#ff4466';
+    $('bs-gen').textContent = 'G' + creature.gen;
+    $('bs-energy').textContent = Math.round(creature.energy);
+    $('bs-fitness').textContent = creature.fitness.toFixed(1);
+    $('bs-age').textContent = creature.age.toFixed(1) + 's';
+    $('bs-eaten').textContent = creature.foodEaten;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GRAPH RENDERER
+// ════════════════════════════════════════════════════════════════════════════
+class Graph {
+  constructor(canvas) {
+    this.cv = canvas; this.ctx = canvas.getContext('2d');
+    this.cv.width = 370; this.cv.height = 140;
+  }
+
+  render(history) {
+    const ctx = this.ctx, W = this.cv.width, H = this.cv.height;
+    ctx.fillStyle = '#080818'; ctx.fillRect(0, 0, W, H);
+    if (!history || history.length < 2) {
+      ctx.fillStyle = '#445566'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('Gathering population data...', W / 2, H / 2);
+      return;
+    }
+
+    const pad = { l: 30, r: 10, t: 12, b: 12 };
+    const gw = W - pad.l - pad.r, gh = H - pad.t - pad.b;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(0,255,136,0.08)'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 5; i++) {
+      const y = pad.t + (i / 4) * gh;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + gw, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(0,255,136,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + gh); ctx.lineTo(pad.l + gw, pad.t + gh); ctx.stroke();
+
+    // Find max
+    let maxV = 10;
+    for (const d of history) maxV = Math.max(maxV, d.h, d.c);
+    maxV = Math.ceil(maxV * 1.15);
+
+    // Y axis labels
+    ctx.fillStyle = '#445566'; ctx.font = '8px monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 4; i++) {
+      const v = Math.round(maxV * (1 - i / 4));
+      ctx.fillText(v, pad.l - 4, pad.t + (i / 4) * gh);
+    }
+
+    // Draw lines
+    const drawLine = (key, color) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.8; ctx.shadowColor = color; ctx.shadowBlur = 4;
+      ctx.beginPath();
+      for (let i = 0; i < history.length; i++) {
+        const x = pad.l + (i / (history.length - 1)) * gw;
+        const y = pad.t + gh - (history[i][key] / maxV) * gh;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke(); ctx.shadowBlur = 0;
+    };
+    drawLine('h', '#00ff88');
+    drawLine('c', '#ff4466');
+
+    // Legend
+    ctx.font = 'bold 9px system-ui'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#00ff88'; ctx.fillText('● Herbivores', W - 120, 18);
+    ctx.fillStyle = '#ff4466'; ctx.fillText('● Carnivores', W - 120, 30);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MAIN — INITIALIZATION & GAME LOOP
+// ════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const sim = new Simulation();
+  const renderer = new Renderer(document.getElementById('simCanvas'), sim);
+  const brainViz = new BrainViz(document.getElementById('brainCanvas'));
+  const graph = new Graph(document.getElementById('graphCanvas'));
+
+  let selected = null, paused = false, speed = 1, trails = true;
+  const $ = id => document.getElementById(id);
+
+  // Canvas click — select creature
+  const simCv = $('simCanvas');
+  simCv.addEventListener('click', e => {
+    const rect = simCv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width * CFG.W;
+    const my = (e.clientY - rect.top) / rect.height * CFG.H;
+    let best = null, bDist = 30;
+    for (const c of sim.creatures) {
+      const d = Math.hypot(c.x - mx, c.y - my);
+      if (d < bDist) { bDist = d; best = c; }
+    }
+    selected = best;
+  });
+
+  // Canvas double-click — spawn food
+  simCv.addEventListener('dblclick', e => {
+    const rect = simCv.getBoundingClientRect();
+    const fx = (e.clientX - rect.left) / rect.width * CFG.W;
+    const fy = (e.clientY - rect.top) / rect.height * CFG.H;
+    sim.food.push(new Food(fx, fy));
+    sim.burst(fx, fy, hsl(120, 100, 70), 4, 50);
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); $('btnPlay').click(); }
+    if (e.key === '+' || e.key === '=') { const s = $('slSpeed'); s.value = Math.min(10, +s.value + 1); s.dispatchEvent(new Event('input')); }
+    if (e.key === '-') { const s = $('slSpeed'); s.value = Math.max(1, +s.value - 1); s.dispatchEvent(new Event('input')); }
+  });
+
+  // Controls
+  $('btnPlay').addEventListener('click', () => {
+    paused = !paused;
+    $('btnPlay').textContent = paused ? '▶ PLAY' : '⏸ PAUSE';
+    $('btnPlay').classList.toggle('active', !paused);
+  });
+  $('slSpeed').addEventListener('input', e => { speed = +e.target.value; $('vSpeed').textContent = speed + '×'; });
+  $('slMut').addEventListener('input', e => { sim.mutRate = +e.target.value / 100; $('vMut').textContent = e.target.value + '%'; });
+  $('btnTrails').addEventListener('click', () => { trails = !trails; $('btnTrails').classList.toggle('active', trails); $('btnTrails').textContent = trails ? '☁ Trails' : '☁ No Trails'; });
+  $('btnReset').addEventListener('click', () => { sim.reset(); selected = null; _cid = 0; });
+
+  // Game loop
+  const DT = 1 / 60;
+  let lastStats = 0;
+
+  function frame() {
+    if (!paused) {
+      const steps = Math.min(speed, 15);
+      for (let i = 0; i < steps; i++) sim.update(DT);
+    }
+
+    // Deselect dead creatures
+    if (selected && selected.dead) selected = null;
+
+    renderer.render(selected, trails);
+    brainViz.render(selected);
+    graph.render(sim.history);
+
+    // Update stats periodically
+    if (performance.now() - lastStats > 200) {
+      lastStats = performance.now();
+      const s = sim.stats();
+      $('st-herb').textContent = s.herbs;
+      $('st-herb-e').textContent = s.hE;
+      $('st-carn').textContent = s.carns;
+      $('st-carn-e').textContent = s.cE;
+      $('st-food').textContent = s.food;
+      $('st-best').textContent = s.bestFit;
+      $('st-gen').textContent = s.maxGen;
+      $('st-time').textContent = Math.floor(s.time) + 's';
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+});
+</script>
+</body>
+</html>
