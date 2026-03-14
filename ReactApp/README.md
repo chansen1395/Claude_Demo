@@ -90,3 +90,64 @@ src/
 - **Vite** — Fast dev server & build tool
 - **styled-components** — CSS-in-JS, themed styling (no raw HTML tags)
 - **Canvas 2D** — HiDPI-aware rendering for simulation, brain, and graph
+- **Vitest** — Unit & component testing with v8 coverage
+
+## Testing
+
+The project has comprehensive tests across all source modules using [Vitest](https://vitest.dev/) with [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+
+### Running Tests
+
+```bash
+# Run all tests once
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+### Coverage
+
+Tests target near-100% coverage across all source files:
+
+| Category | Statements | Branches | Functions | Lines |
+|----------|-----------|----------|-----------|-------|
+| Engine (`src/engine/`) | 100% | 100% | 100% | 100% |
+| Renderers (`src/renderers/`) | 100% | 95%+ | 100% | 100% |
+| Components (`src/components/`) | 90%+ | 66%+ | 100% | 100% |
+| App & Root | 98%+ | 85%+ | 100% | 98%+ |
+| **Overall** | **99%+** | **96%+** | **100%** | **99%+** |
+
+> Remaining branch gaps in components are untestable defensive guards (`if (!canvas) return`) that v8 coverage counts through JSX transpilation but can never execute in normal rendering.
+
+### Test Structure
+
+```
+src/__tests__/
+├── setup.ts                          # Canvas mock, DOM mocks, rAF polyfill
+├── engine/
+│   ├── config.test.ts                # CFG constants
+│   ├── utils.test.ts                 # Math utilities
+│   ├── nn.test.ts                    # Neural network + mutation
+│   ├── food.test.ts                  # Food entity
+│   ├── particle.test.ts             # Effect particles
+│   ├── creature.test.ts             # Creature sensing, movement, reproduction
+│   └── simulation.test.ts           # Simulation loop, eating, population
+├── renderers/
+│   ├── simRenderer.test.ts          # Simulation canvas renderer
+│   ├── brainRenderer.test.ts        # Brain visualizer renderer
+│   └── graphRenderer.test.ts        # Graph renderer
+├── components/
+│   ├── Header.test.tsx              # Header component
+│   ├── Controls.test.tsx            # Controls panel
+│   ├── StatsPanel.test.tsx          # Statistics panel
+│   ├── SimCanvas.test.tsx           # Canvas click/dblclick handlers
+│   ├── BrainPanel.test.tsx          # Brain panel (mocks renderer)
+│   └── GraphPanel.test.tsx          # Graph panel
+├── App.test.tsx                     # App integration, keyboard shortcuts
+├── main.test.tsx                    # Entry point bootstrap
+└── theme.test.ts                    # Theme constants
+```
