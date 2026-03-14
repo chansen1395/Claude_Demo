@@ -1,0 +1,6 @@
+.vite/
+ReactApp/node_modules/
+ReactApp/dist/
+ReactApp/.vite/
+*.log
+Thumbs.db

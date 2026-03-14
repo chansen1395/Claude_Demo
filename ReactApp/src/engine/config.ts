@@ -1,0 +1,55 @@
+export const CFG = {
+  W: 900,
+  H: 650,
+
+  INIT_HERBS: 50,
+  INIT_CARNS: 12,
+  INIT_OMNIS: 8,
+  MAX_POP: 250,
+  MIN_HERBS: 15,
+  MIN_CARNS: 5,
+  MIN_OMNIS: 3,
+
+  TOPOLOGY: [10, 8, 6, 3] as readonly number[],
+
+  HERB_SPEED: 110,
+  HERB_TURN: 0.15,
+  HERB_MAX_E: 100,
+  HERB_META: 3,
+  HERB_EAT_R: 16,
+  HERB_FOOD_E: 30,
+  HERB_REPR_T: 0.70,
+  HERB_REPR_C: 0.40,
+  HERB_SZ: 7,
+
+  CARN_SPEED: 140,
+  CARN_TURN: 0.18,
+  CARN_MAX_E: 120,
+  CARN_META: 5,
+  CARN_EAT_R: 20,
+  CARN_PREY_E: 55,
+  CARN_REPR_T: 0.70,
+  CARN_REPR_C: 0.40,
+  CARN_SZ: 9,
+
+  OMNI_SPEED: 120,
+  OMNI_TURN: 0.16,
+  OMNI_MAX_E: 110,
+  OMNI_META: 4,
+  OMNI_EAT_R: 18,
+  OMNI_FOOD_E: 20,
+  OMNI_PREY_E: 40,
+  OMNI_REPR_T: 0.70,
+  OMNI_REPR_C: 0.40,
+  OMNI_SZ: 8,
+
+  INIT_FOOD: 80,
+  MAX_FOOD: 120,
+  FOOD_RATE: 3,
+
+  MUT_RATE: 0.08,
+  MUT_STR: 0.4,
+
+  SENSE: 200,
+  TRAIL: 10,
+};
